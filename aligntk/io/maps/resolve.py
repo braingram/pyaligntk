@@ -43,7 +43,36 @@ def to_corresponding_points(alignment_map, confidence_threshold=0.8):
     return image_pts, ref_pts
 
 
-def to_affine(alignment_map, confidence_threshold=0.8, full=True):
+def from_affine(affine, im, **info):
+    # level, elements, width, height, x_min, y_min, image, ref
+    assert 'image' in info
+    assert 'ref' in info
+    if 'level' not in info:
+        info['level'] = int(numpy.floor(numpy.log2(min(im.shape))))
+    lvl = info['level']
+    info['width'] = (im.shape[1] >> info['level']) + 1
+    info['height'] = (im.shape[1] >> info['level']) + 1
+    info['x_min'] = 0
+    info['y_min'] = 0
+    elements = []
+    sa = numpy.matrix(numpy.vstack((
+        affine, numpy.array([(0., 0., 1.), ])))).T
+    to_lvl_scale = 1. / (1 << lvl)
+    for y in xrange(info['height']):
+        for x in xrange(info['width']):
+            px = (x << lvl)
+            py = (y << lvl)
+            # convert x, y to ref coordinates
+            pt = numpy.array(numpy.array([px, py, 1.0]) * sa)[0]
+            elements.append((
+                pt[0] * to_lvl_scale, pt[1] * to_lvl_scale, 1.0))
+            print x, y, px, py, elements[-1]
+    info['elements'] = elements
+    return info
+
+
+def to_affine(alignment_map, confidence_threshold=0.8, full=False):
+    """ Returns a image-to-ref affine """
     image_pts, ref_pts = to_corresponding_points(
         alignment_map, confidence_threshold=confidence_threshold)
     return cv2.estimateRigidTransform(
