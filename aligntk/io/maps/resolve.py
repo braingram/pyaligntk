@@ -5,22 +5,6 @@ import numpy
 import scipy.interpolate
 
 
-def to_level(alignment_map, level):
-    if alignment_map['level'] == level:
-        return alignment_map
-    from_scale = float(1 << alignment_map['level'])
-    to_scale = 1. / (1 << level)
-    new_elements = []
-    x_min = float(alignment_map['x_min'])
-    y_min = float(alignment_map['y_min'])
-    for e in alignment_map['elements']:
-        x, y, c = e
-        nx = (x + x_min) * from_scale
-        ny = (y + y_min) * from_scale
-        new_elements.append((nx, ny, c))
-    return new_elements
-
-
 def to_corresponding_points(alignment_map, confidence_threshold=0.8):
     from_scale = float(1 << alignment_map['level'])
     ref_pts = []
@@ -28,18 +12,18 @@ def to_corresponding_points(alignment_map, confidence_threshold=0.8):
     x_min = float(alignment_map['x_min'])
     y_min = float(alignment_map['y_min'])
     width = float(alignment_map['width'])
-    height = float(alignment_map['height'])
+    # height = float(alignment_map['height'])
     for (ei, e) in enumerate(alignment_map['elements']):
         x, y, c = e
         if c < confidence_threshold:
             continue
-        rx = (x + x_min) * from_scale
-        ry = (y + y_min) * from_scale
         iy, ix = divmod(ei, width)
-        ix = ix / (width - 1.) * from_scale
-        iy = iy / (height - 1.) * from_scale
-        ref_pts.append((rx, ry))
-        image_pts.append((ix, iy))
+        image_x = from_scale * (ix + x_min)
+        image_y = from_scale * (iy + y_min)
+        image_pts.append((image_x, image_y))
+        ref_x = x * from_scale
+        ref_y = y * from_scale
+        ref_pts.append((ref_x, ref_y))
     return image_pts, ref_pts
 
 

@@ -4,7 +4,7 @@ import cv2
 
 import pylab
 
-import .. import io.maps.resolve
+from .. import io
 
 
 def show_match(image, reference, alignment_map):
