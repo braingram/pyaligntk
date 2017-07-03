@@ -2,5 +2,6 @@
 
 from . import cpts
 from . import maps
+from . import summary
 
-__all__ = ['cpts', 'maps']
+__all__ = ['cpts', 'maps', 'summary']
